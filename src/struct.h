@@ -38,3 +38,4 @@ struct SProgram{
 };
 extern struct SProgram* g_program;
 void generate();
+int yyerror( char* msg );

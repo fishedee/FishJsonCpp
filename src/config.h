@@ -8,6 +8,16 @@ static const char* header_files[] = {
 };
 static const char* basic_types[] = {
 	"bool",
+	"char",
+	"short",
+	"int",
+	"long",
+	"long long",
+	"unsigned char",
+	"unsigned short",
+	"unsigned int",
+	"unsigned long",
+	"unsigned long long",
 	"int8_t",
 	"int16_t",
 	"int32_t",

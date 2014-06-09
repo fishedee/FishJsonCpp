@@ -9,5 +9,5 @@ int main(){
 	return 0;
 }
 int yyerror( char* msg ){
-	printf("Error Encounter:%s LineNumber:%d\n",msg ,yylineno);
+	fprintf(stderr,"Error Encounter:%s LineNumber:%d\n",msg ,yylineno);
 }

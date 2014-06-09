@@ -1,6 +1,7 @@
 #include "struct.h"
 #include "config.h"
 #include <string.h>
+#include <stdlib.h>
 struct SProgram* g_program = NULL;
 void generateClassFieldType( struct SFieldType* sFieldType ){
 	printf("%s",sFieldType->strFieldTypeName);
@@ -131,7 +132,7 @@ void generateClassDumpMethod( struct SClass* sClass ){
 	printf("\tvoid DumpDataTree( std::ostream& os ,int32_t indent = 0 )const{\n");
 	for( listClassField = sClass->listClassField;
 		listClassField != NULL ; listClassField = listClassField->next ){
-		printf("\t\tg_pprint(os,\"%s\",m_%s,indet);\n", 
+		printf("\t\tg_pprint(os,\"%s\",m_%s,indent);\n", 
 			listClassField->sField->strFieldName , 
 			listClassField->sField->strFieldName );
 	}
@@ -146,12 +147,13 @@ void generateClassToJsonFieldMethod( struct SFieldType* sFieldType, const char* 
 	char strMapSecondPointer[64];
 	snprintf(strIndex,sizeof(strIndex),"i%d",*index);
 	snprintf(strRoot,sizeof(strRoot),"root_%d",*index);
-	snprintf(strVectorPointer,sizeof(strVectorPointer),"*i%d",*index);
+	snprintf(strVectorPointer,sizeof(strVectorPointer),"(*i%d)",*index);
 	snprintf(strMapFirstPointer,sizeof(strMapFirstPointer),"i%d->first",*index);
 	snprintf(strMapSecondPointer,sizeof(strMapSecondPointer),"i%d->second",*index);
 	(*index)++;
-
+	
 	printf("\t\tJson::Value %s;\n",strRoot);
+	
 	if( isBasicType( sFieldType->strFieldTypeName ) == 1 ){
 		//基础类型	
 		if( mayBeNull == 1 ){
@@ -204,7 +206,8 @@ void generateClassToJsonFieldMethod( struct SFieldType* sFieldType, const char* 
 	if( strlen(key) == 0 ){
 		printf( "\t\t%s.append(%s);\n", jsonRoot , strRoot );
 	}else{
-		printf( "\t\t%s[%s] = %s;\n", jsonRoot , key , strRoot );
+		printf("\t\tss<<%s;\n",key);
+		printf( "\t\t%s[ss.str()] = %s;\n", jsonRoot, strRoot );
 	}
 	printf("\n");
 }
@@ -246,7 +249,7 @@ void generateClassFromJsonFieldMethod(
 			strcpy(strType,"Double");
 		}else if( strcmp("int64_t",sFieldType->strFieldTypeName) == 0
 				|| strcmp("uint64_t",sFieldType->strFieldTypeName) == 0 ){
-			strcpy(strType,"Long");
+			strcpy(strType,"Int");
 		}else{
 			strcpy(strType,"Int");
 		}
@@ -302,7 +305,10 @@ void generateClassFromJsonFieldMethod(
 		printf("\t\t");
 		generateClassFieldType( sFieldType->sSecondSubFieldType );
 		printf(" %s;\n",strSingleTemp2);
-		printf("\t\t%s = %s[%s];\n",strSingleTemp1,strSingleTemp3,strIndex);
+		if( strcmp("std::string",sFieldType->sFirstSubFieldType->strFieldTypeName) == 0 )
+			printf("\t\t%s = %s[%s];\n",strSingleTemp1,strSingleTemp3,strIndex);
+		else
+			printf("\t\t%s = atoll(%s[%s].c_str());\n",strSingleTemp1,strSingleTemp3,strIndex);
 		generateClassFromJsonFieldMethod( 
 			sFieldType->sSecondSubFieldType ,
 			strMapRoot,
@@ -340,6 +346,7 @@ void generateClassJsonMethod( struct SClass* sClass ){
 	//生成ToJson函数
 	printf("\tJson::Value ToJson()const{\n");
 	printf("\t\tJson::Value root;\n");
+	printf("\t\tstd::stringstream ss;\n");
 	printf("\t\t\n");
 	for( listClassField = sClass->listClassField ; 
 		listClassField != NULL ; listClassField = listClassField->next ){
@@ -410,6 +417,11 @@ void generate(){
 	struct SHeaderList* headerList;
 	struct SClassList* classList;
 	int i;
+	//检查g_program
+	if( g_program  == NULL ){
+		yyerror("parse error!");
+		exit(0);
+	}
 	//生成重复编译头
 	printf("#ifndef __");
 	for( namespace = g_program->sCode->listNamespaces; 
