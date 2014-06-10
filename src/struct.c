@@ -65,11 +65,13 @@ void generateClassFieldMethod( struct SFiled* sField){
 	printf("\t\treturn m_%s;\n",sField->strFieldName );
 	printf("\t}\n");
 	//生成非常量获取器
+	/*
 	printf("\t");
 	generateClassFieldType( sField->sFieldType );
 	printf("& Get%s(){\n",firstToUpper( sField->strFieldName  ));
 	printf("\t\treturn m_%s;\n",sField->strFieldName );
 	printf("\t}\n");
+	*/
 	//生成常量是否设置获取器
 	printf("\tbool Is%sSet()const{\n",firstToUpper( sField->strFieldName  ));
 	printf("\t\treturn m_%s_u;\n",sField->strFieldName );
@@ -206,8 +208,8 @@ void generateClassToJsonFieldMethod( struct SFieldType* sFieldType, const char* 
 	if( strlen(key) == 0 ){
 		printf( "\t\t%s.append(%s);\n", jsonRoot , strRoot );
 	}else{
-		printf("\t\tss<<%s;\n",key);
-		printf( "\t\t%s[ss.str()] = %s;\n", jsonRoot, strRoot );
+		printf("\t\tss.str(\"\");ss<<%s;\n",key);
+		printf( "\t\t%s[ss.str()] = %s;\n", jsonRoot,strRoot );
 	}
 	printf("\n");
 }
