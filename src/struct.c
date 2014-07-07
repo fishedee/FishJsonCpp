@@ -203,7 +203,13 @@ void generateClassToJsonFieldMethod( struct SFieldType* sFieldType, const char* 
 		printf("\t\t}\n");
 	}else{
 		//自定义类型	
-		printf("\t\t%s = %s.ToJson();\n",strRoot , value);
+		if( mayBeNull == 1 ){
+			printf("\t\tif( %s_u == true ){\n",value);
+			printf("\t\t\t%s = %s.ToJson();\n",strRoot , value);
+			printf("\t\t}\n");
+		}else{
+			printf("\t\t%s = %s.ToJson();\n",strRoot , value);
+		}
 	}
 	if( strlen(key) == 0 ){
 		printf( "\t\t%s.append(%s);\n", jsonRoot , strRoot );
